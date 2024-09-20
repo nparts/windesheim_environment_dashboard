@@ -1,10 +1,8 @@
 <template>
-  <v-app>
+  <v-app fluid>
     <v-app-bar>
-      <v-app-bar-nav-icon>
-      </v-app-bar-nav-icon>
 
-        <img alt="Vue logo" class="mt-2" src="@/assets/Windesheim_logo_ZG_RGB-DEF.png" height="75px"/>
+        <img alt="Windesheim Logo" class="mt-2 ml-2" src="@/assets/Windesheim_logo_ZG_RGB-DEF.png"/>
       <v-spacer></v-spacer>
       <h1
         class="text-uppercase"
@@ -20,7 +18,8 @@
       </div>
 
 
-      <v-btn>
+      <v-btn icon @click="getSensors">
+        <v-icon>mdi-refresh</v-icon>
       </v-btn>
     </v-app-bar>
 
@@ -28,11 +27,13 @@
       <v-container>
         <v-row>
           <v-col
-            v-for="n in 24"
-            :key="n"
-            cols="4"
+            v-for="sensor in sensors"
+            :key="sensor.id"
+            cols="12"
+            md="6"
+            lg="4"
           >
-            <v-card height="200"></v-card>
+            <sensor-card :sensor="sensor" />
           </v-col>
         </v-row>
       </v-container>
@@ -40,11 +41,11 @@
   </v-app>
 </template>
 <script>
-import { RouterLink, RouterView } from 'vue-router'
 import moment from 'moment'
-import axios from 'axios'
+import SensorCard from '@/components/SensorCard.vue'
 export default {
   name: "App",
+  components: { SensorCard },
 
   data: () => ({
     loading: false,
@@ -60,14 +61,13 @@ export default {
   methods: {
     getSensors() {
       this.$axios.get("/v1/sensors").then((response) => {
-        this.lastResponseTimestamp = new Date();
-        this.sensors = response.data;
+        this.lastResponseTimestamp = new Date()
+        this.sensors = response.data.items
       });
     },
     getTime() {
       this.currentTime = moment().format("HH:mm:ss");
-      this.lastUpdated = moment(this.lastResponseTimestamp)
-        .fromNow();
+      this.lastUpdated = moment(this.lastResponseTimestamp).fromNow();
     },
   },
   created() {
