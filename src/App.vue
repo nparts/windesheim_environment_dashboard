@@ -1,12 +1,9 @@
 <template>
   <v-app fluid>
     <v-app-bar>
-      <img alt="Windesheim Logo" class="mt-2 ml-2" src="@/assets/Windesheim_logo_ZG_RGB-DEF.png"/>
+      <img alt="Windesheim Logo" class="mt-2 ml-2" src="@/assets/Windesheim_logo_ZG_RGB-DEF.png" />
       <v-spacer></v-spacer>
-      <h1
-        class="text-uppercase"
-        style="font-family: 'Roboto Mono', sans-serif"
-      >
+      <h1 class="text-uppercase" style="font-family: 'Roboto Mono', sans-serif">
         {{ currentTime }}
       </h1>
 
@@ -22,11 +19,7 @@
           <h4>LIVE</h4>
         </div>
       </template>
-      <v-btn-toggle
-        class="ml-5"
-        v-model="toggle"
-        divided
-      >
+      <v-btn-toggle class="ml-5" v-model="toggle" divided>
         <v-btn icon="mdi-update"></v-btn>
         <v-btn icon="mdi-autorenew"></v-btn>
       </v-btn-toggle>
@@ -57,22 +50,12 @@
             clearable
             v-on:keyup.enter="getSensors"
           ></v-text-field>
-          <v-btn
-            color="primary"
-            class="mr-2"
-            @click="getSensors"
-          >
+          <v-btn color="primary" class="mr-2" @click="getSensors">
             <v-icon>mdi-refresh</v-icon>
           </v-btn>
         </v-toolbar>
         <v-row>
-          <v-col
-            v-for="sensor in sensors"
-            :key="sensor.id"
-            cols="12"
-            md="6"
-            lg="4"
-          >
+          <v-col v-for="sensor in sensors" :key="sensor.id" cols="12" md="6" lg="4">
             <sensor-card :sensor="sensor" />
           </v-col>
         </v-row>
@@ -84,7 +67,7 @@
 import moment from 'moment'
 import SensorCard from '@/components/SensorCard.vue'
 export default {
-  name: "App",
+  name: 'App',
   components: { SensorCard },
 
   data: () => ({
@@ -92,7 +75,7 @@ export default {
 
     fields: [
       { text: 'Serial Number', value: 'serial_number' },
-      { text: 'Name', value: 'name' },
+      { text: 'Name', value: 'name' }
     ],
     field_selected: 'serial_number',
     field_value: null,
@@ -108,37 +91,52 @@ export default {
   computed: {},
   methods: {
     periodicUpdate() {
-      if(toggle === 0) {
-        this.getSensors();
+      if (this.toggle === 0) {
+        this.getSensors()
       }
     },
     getSensors() {
-      this.loading = true;
-      const params = this.field_value ? `?${this.field_selected}=${this.field_value}` : '';
-      this.$axios.get(`/v1/sensors${params}`).then((response) => {
-        this.lastResponseTimestamp = new Date()
-        this.sensors = response.data.items
-      })
+      this.loading = true
+      const params = this.field_value ? `?${this.field_selected}=${this.field_value}` : ''
+      this.$axios
+        .get(`/sensor${params}`)
+        .then((response) => {
+          this.lastResponseTimestamp = new Date()
+          this.sensors = response.data.items
+        })
         .catch(() => {
-        this.sensors = [];
+          this.sensors = []
         })
         .finally(() => {
-        this.loading = false;
-      });
+          this.loading = false
+        })
     },
     getTime() {
-      this.currentTime = moment().format("HH:mm:ss");
-      this.lastUpdated = moment(this.lastResponseTimestamp).fromNow();
-    },
+      this.currentTime = moment().format('HH:mm:ss')
+      this.lastUpdated = moment(this.lastResponseTimestamp).fromNow()
+    }
   },
   created() {
-    this.getSensors();
-    setInterval(this.getTime, 1000);
-    setInterval(this.periodicUpdate, 10000);
+    this.getSensors()
+    setInterval(this.getTime, 1000)
+    setInterval(this.periodicUpdate, 10000)
   },
-};
+  mounted() {
+    // Access the SignalR connection from global properties
+    const connection = this.$signalrConnection;
+
+    // Example: listening to a SignalR event
+    connection.on('ReceiveSensorData', (data) => {
+      if (this.toggle === 1) {
+        const index = this.sensors.findIndex((sensor) => sensor.id === data.id);
+        if (index !== -1) {
+          this.sensors[index] = data;
+        }
+        console.log(data);
+      }
+    });
+  }
+}
 </script>
 
-
-<style scoped>
-</style>
+<style scoped></style>
