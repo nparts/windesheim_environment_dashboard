@@ -28,16 +28,6 @@ const vuetify = createVuetify({
   directives,
 })
 
-const app = createApp(App)
-app.use(createPinia())
-app.use(router)
-app.use(vuetify)
-app.use(moment)
-app.use(axios, {
-  baseUrl: 'https://localhost:8888',
-})
-app.mount('#app')
-
 const connection = new signalR.HubConnectionBuilder()
   .withUrl('https://localhost:8888/sensorHub' ) // Replace with your SignalR server URL
   .withAutomaticReconnect() // Optional: enables automatic reconnection
@@ -53,5 +43,16 @@ connection.start()
     console.error('Error while establishing SignalR connection: ', err);
   });
 
+const app = createApp(App)
+app.use(createPinia())
+app.use(router)
+app.use(vuetify)
+app.use(moment)
+app.use(axios, {
+  baseUrl: 'https://localhost:8888',
+})
 // Optionally, you can attach the SignalR connection to the global app instance
 app.config.globalProperties.$signalrConnection = connection;
+app.mount('#app')
+
+
